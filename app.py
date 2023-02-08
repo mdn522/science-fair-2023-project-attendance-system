@@ -53,7 +53,7 @@ def get_todays_attendance_csv_filepath():
 cap = cv2.VideoCapture(config.camera_index)
 
 sfr = SimpleFaceRec()
-sfr.load_encoding_images(images_path=base_path / 'static/faces')
+sfr.load_encoding_images(images_path=config.faces_path)
 
 
 # If these directories don't exist, create them
@@ -70,7 +70,7 @@ def totalreg():
 
 # A function which trains the model on all the faces available in faces folder
 def train_model():
-    sfr.load_encoding_images(images_path=base_path / 'static/faces', force=True)
+    sfr.load_encoding_images(images_path=config.faces_path, force=True)
 
 
 # Extract info from today's attendance file in attendance folder

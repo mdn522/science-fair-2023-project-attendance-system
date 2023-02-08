@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from pathlib import Path
 from typing import Optional
-
 import face_recognition
 import cv2
 import os
@@ -67,6 +66,7 @@ class SimpleFaceRec:
             img_ext = img_path.split('.')[-1]
             if img_ext not in ['jpg', 'jpeg', 'png']:
                 continue
+
             img = cv2.imread(img_path)
             img_size = os.path.getsize(img_path)
             rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -178,5 +178,5 @@ class SimpleFaceRec:
 
 if __name__ == '__main__':
     s = SimpleFaceRec()
-    s.load_encoding_images(images_path=base_path / 'static/faces')
+    s.load_encoding_images(images_path=config.faces_path)
     pass
