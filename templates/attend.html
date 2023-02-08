@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance{% endblock title %}
+
+{% block content %}
+    <div class="mx-auto container mt-4 p-2">
+        <div class="mx-auto flex items-center justify-center">
+            <div class="rounded-md bg-gradient-to-r from-blue-600 via-sky-500 to-violet-800 p-1">
+                <h1 class="text-2xl leading-10 font-medium text-center mt-[-8px] ">Captured Image</h1>
+                <div class="flex items-center justify-center bg-gray-800 back">
+                    <img class="w-auto max-h-96 border-red-500"
+                         src="data:image/jpeg;base64,{{ frame | np_base64 | safe }}"
+                         alt="Captured Image">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="mx-auto flex justify-center items-center relative mt-6 flex-col">
+            {% if faces | length > 0 %}
+                <h2 class="text-2xl leading-1 text-center mb-2">Attended Users</h2>
+
+                <div class="flex justify-center">
+                    {% for face in faces %}
+                        <div class="w-48 p-3 bg-stone-900 border-2 {% if face.attended %}border-cyan-900{% else %}border-red-900{% endif %} rounded mx-3 relative">
+{#                            {{ face }}#}
+                            <div class="relative">
+                                <img class="w-full border-red-500"
+                                    src="data:image/jpeg;base64,{{ face.image | np_base64 | safe }}"
+                                    alt="Captured Image">
+
+                            </div>
+
+                        {% if face.has_already_attended_today %}
+                            <div class="absolute text-white text-bold p-1 bg-emerald-500 text-sm" style="top: 0; right: 0;">
+                                Already Attended Today
+                            </div>
+                        {% endif %}
+
+                        <div class="mt-2">
+                            {% if face.person %}
+                                <span class="">Name: <span class="font-semibold">{{ face.person.name }}</span> </span><br>
+                                <span class="">User ID: <span class="font-semibold">{{ face.person.user_id }}</span> </span><br>
+                                <span class="">Type: <span class="font-semibold">{{ face.person.occupation.title() }}</span> </span><br>
+                            {% else %}
+                                <span class="text-red-500 font-semibold">Unknown Person</span>
+                            {% endif %}
+
+                        </div>
+
+
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <h2 class="text-4xl text-orange-400 text-center">No Known Faces Detected</h2>
+            {% endif %}
+        </div>
+    </div>
+{% endblock content %}

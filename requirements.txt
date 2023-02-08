@@ -1,0 +1,13 @@
+requests
+dill
+diskcache
+numpy
+pandas
+imutils
+flask
+opencv-python
+dlib-19.22.99-cp37-cp37m-win_amd64.whl
+face_recognition
+environs
+git+https://github.com/schmoelder/python-diskcache.git@support_dill
+git+https://github.com/remigermain/nested-multipart-parser
