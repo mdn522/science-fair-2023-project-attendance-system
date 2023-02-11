@@ -50,22 +50,18 @@ def get_todays_attendance_csv_filepath():
 # file_date_today = date.today().strftime("%Y_%m_%d")
 # datetoday2 = date.today().strftime("%d-%B-%Y")
 
-cap = cv2.VideoCapture(config.camera_index)
-
 sfr = SimpleFaceRec()
 sfr.load_encoding_images(images_path=config.faces_path)
 
 
 # If these directories don't exist, create them
-if not os.path.isdir('Attendance'):
-    os.makedirs('Attendance')
-if not os.path.isdir('static/faces'):
-    os.makedirs('static/faces')
+# if not os.path.isdir('Attendance'):
+#     os.makedirs('Attendance')
 
 
 # get a number of total registered users
-def totalreg():
-    return len(os.listdir('static/faces'))
+# def totalreg():
+#     return len(os.listdir('static/faces'))
 
 
 # A function which trains the model on all the faces available in faces folder
@@ -163,55 +159,57 @@ def add():
     # Capture image. find faces
     # Show faces in webpage
     # Let people
-    cap = cv2.VideoCapture(config.camera_index)
     TIMER = config.add_capture_timer - 1
     timer_key = 'q'
     captured_frame = None
 
-    # captured_frame = cv2.imread('camera.jpg')  # TODO test. delete it
-    while True:
-        frame = utils.get_frame(cap)
+    if config.test_use_static_image:
+        captured_frame = cv2.imread(config.test_static_image_name)  # TODO test. delete it
+    else:
+        cap = cv2.VideoCapture(config.camera_index)
+        while True:
+            frame = utils.get_frame(cap)
 
-        cv2.putText(
-            frame, 'Press {} to start timer'.format(timer_key), (30, 50),
-            cv2.FONT_HERSHEY_DUPLEX, 1,
-            (100, 255, 100), 2, cv2.LINE_AA
-        )
+            cv2.putText(
+                frame, 'Press {} to start timer'.format(timer_key), (30, 50),
+                cv2.FONT_HERSHEY_DUPLEX, 1,
+                (100, 255, 100), 2, cv2.LINE_AA
+            )
 
-        cv2.imshow('Add new User', frame)
-        k = cv2.waitKey(1)
+            cv2.imshow('Add new User', frame)
+            k = cv2.waitKey(1)
 
-        if k == ord(timer_key):
-            prev = time.time()
+            if k == ord(timer_key):
+                prev = time.time()
 
-            while TIMER >= 0:
-                frame = utils.get_frame(cap)
-                cv2.putText(
-                    frame, str(TIMER + 1), (75, 200),
-                    cv2.FONT_HERSHEY_DUPLEX, 7, (0, 0, 255),
-                    4, cv2.LINE_AA
-                )
-                cv2.imshow('Add new User', frame)
-                cv2.waitKey(1)
+                while TIMER >= 0:
+                    frame = utils.get_frame(cap)
+                    cv2.putText(
+                        frame, str(TIMER + 1), (75, 200),
+                        cv2.FONT_HERSHEY_DUPLEX, 7, (0, 0, 255),
+                        4, cv2.LINE_AA
+                    )
+                    cv2.imshow('Add new User', frame)
+                    cv2.waitKey(1)
 
-                cur = time.time()
+                    cur = time.time()
 
-                # Update and keep track of Countdown
-                # if time elapsed is one second
-                # then decrease the counter
-                if cur - prev >= 1:
-                    prev = cur
-                    TIMER = TIMER - 1
-            else:
-                captured_frame = utils.get_frame(cap)
+                    # Update and keep track of Countdown
+                    # if time elapsed is one second
+                    # then decrease the counter
+                    if cur - prev >= 1:
+                        prev = cur
+                        TIMER = TIMER - 1
+                else:
+                    captured_frame = utils.get_frame(cap)
+                    break
+            elif k == 27:
                 break
-        elif k == 27:
-            break
 
-    # close the camera
-    cap.release()
-    # close all the opened windows
-    cv2.destroyAllWindows()
+        # close the camera
+        cap.release()
+        # close all the opened windows
+        cv2.destroyAllWindows()
 
     #
     if captured_frame is None:
@@ -279,34 +277,38 @@ def take_attendance():
     captured_frame = None
 
     dt = None
-    # captured_frame = cv2.imread('camera.jpg')  # TODO test. delete it
 
-    while True:
-        frame = utils.get_frame(cap)
-        original_frame = frame.copy()
+    if config.test_use_static_image:
+        captured_frame = cv2.imread('camera.jpg')
+    else:
+        cap = cv2.VideoCapture(config.camera_index)
 
-        face_locations = sfr.face_locations(frame)
+        while True:
+            frame = utils.get_frame(cap)
+            original_frame = frame.copy()
 
-        for face_loc in face_locations:
-            y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
+            face_locations = sfr.face_locations(frame)
 
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 20), 2)
+            for face_loc in face_locations:
+                y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
 
-        cv2.putText(frame, f'Press q to take picture', (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 20), 2, cv2.LINE_AA)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 20), 2)
 
-        cv2.imshow('Take Attendance', frame)
-        k = cv2.waitKey(1)
+            cv2.putText(frame, f'Press q to take picture', (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 20), 2, cv2.LINE_AA)
 
-        if k == ord('q'):
-            captured_frame = original_frame
-            dt = datetime.now()
-            break
-        elif k == 27:
-            cancelled = True
-            break
+            cv2.imshow('Take Attendance', frame)
+            k = cv2.waitKey(1)
 
-    cap.release()
-    cv2.destroyAllWindows()
+            if k == ord('q'):
+                captured_frame = original_frame
+                dt = datetime.now()
+                break
+            elif k == 27:
+                cancelled = True
+                break
+
+        cap.release()
+        cv2.destroyAllWindows()
 
     if cancelled:
         return render_template('index.html', msg='Cancelled')
