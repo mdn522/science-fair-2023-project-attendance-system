@@ -356,7 +356,7 @@ def take_attendance():
     return render_template('attend.html', **ctx)
 
 
-@app.route('/take-attendance', methods=['GET'])
+@app.route('/history', methods=['GET'])
 def attendance_history():
     # TODO zip it
     names, rolls, occupations, times, l = extract_attendance()
