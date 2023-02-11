@@ -25,6 +25,10 @@ app = Flask(__name__)
 add_view_cache = dc.Cache(str(config.dc_path / 'add_view_cache'))
 
 
+sfr = SimpleFaceRec()
+sfr.load_encoding_images(images_path=config.faces_path)
+
+
 @app.template_filter()
 def np_base64(arr):
     retval, buffer = cv2.imencode('.jpg', arr)
@@ -43,22 +47,6 @@ def get_todays_attendance_csv_filepath():
             f.write('Name,Roll,Occupation,Time')
 
     return path
-
-# file_date_today = date.today().strftime("%Y_%m_%d")
-# datetoday2 = date.today().strftime("%d-%B-%Y")
-
-sfr = SimpleFaceRec()
-sfr.load_encoding_images(images_path=config.faces_path)
-
-
-# If these directories don't exist, create them
-# if not os.path.isdir('Attendance'):
-#     os.makedirs('Attendance')
-
-
-# get a number of total registered users
-# def totalreg():
-#     return len(os.listdir('static/faces'))
 
 
 # A function which trains the model on all the faces available in faces folder
