@@ -23,7 +23,7 @@ cam_ip_url: str = env.str('CAM_IP_URL', default='')
 
 # TEST Modes
 test_use_static_image = env.bool('TEST_USE_STATIC_IMAGE', default=False)
-test_static_image_name = env.bool('TEST_STATIC_IMAGE_NAME', default='camera.jpg')
+test_static_image_name = env.str('TEST_STATIC_IMAGE_NAME', default='camera.jpg')
 
 if __name__ == '__main__':
     print(base_path)
