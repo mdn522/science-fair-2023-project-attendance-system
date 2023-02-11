@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 import face_recognition
 import cv2
 import os
@@ -10,7 +10,6 @@ import diskcache as dc
 from dataclasses import dataclass
 
 import config
-from config import base_path
 
 
 @dataclass
@@ -26,8 +25,6 @@ class FaceDataItem:
 class SimpleFaceRec:
     def __init__(self):
         self.known_face_data = dc.Index(str(config.dc_path / 'known_face_data'))
-        # self.known_face_encodings = []
-        # self.known_face_names = []
 
         # Resize frame for a faster speed
         self.frame_resizing = 0.5
@@ -49,6 +46,7 @@ class SimpleFaceRec:
     def load_encoding_images(self, images_path, force: bool = False):
         """
         Load encoding images from path
+        :param force: bool
         :param images_path:
         :return:
         """
@@ -58,9 +56,9 @@ class SimpleFaceRec:
         print("{} encoding images found.".format(len(images_path)))
 
         # Store image encoding and names
-        known_face_data_keys = list(self.known_face_data.keys())
+        known_face_data_keys: List[str] = list(self.known_face_data.keys())
         known_face_data = OrderedDict(self.known_face_data.items())
-        base_names = []
+        base_names: List[str] = []
         for img_path in images_path:
             print(img_path)
             img_ext = img_path.split('.')[-1]
@@ -68,7 +66,7 @@ class SimpleFaceRec:
                 continue
 
             img = cv2.imread(img_path)
-            img_size = os.path.getsize(img_path)
+            img_size: int = os.path.getsize(img_path)
             rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             # Get the filename only from the initial file path.
@@ -92,8 +90,6 @@ class SimpleFaceRec:
                 img_encoding = face_recognition.face_encodings(rgb_img)[0]
 
                 # Store file name and file encoding
-                # self.known_face_encodings.append(img_encoding)
-                # self.known_face_names.append(filename)
                 self.known_face_data[user_id] = FaceDataItem(
                     name=person_name,
                     user_id=user_id,
@@ -132,42 +128,16 @@ class SimpleFaceRec:
 
         # print(face_locations, face_encodings)
 
-        # face_names = []
         face_user_ids = []
         for face_encoding in face_encodings:
             # See if the face is a match for the known face(s)
             matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding)
-            # name = "Unknown"
             user_id = None
 
             # # If a match was found in known_face_encodings, just use the first one.
             if True in matches:
                 first_match_index = matches.index(True)
-                # name = self.known_face_names[first_match_index]
                 user_id = self.known_face_ids[first_match_index]
-
-            # if True in matches:
-            #     #Find positions at which we get True and store them
-            #     matchedIdxs = [i for (i, b) in enumerate(matches) if b]
-            #     counts = {}
-            #     # loop over the matched indexes and maintain a count for
-            #     # each recognized face face
-            #     for i in matchedIdxs:
-            #         #Check the names at respective indexes we stored in matchedIdxs
-            #         name = data["names"][i]
-            #         #increase count for the name we got
-            #         counts[name] = counts.get(name, 0) + 1
-            #     #set name which has highest count
-            #     name = max(counts, key=counts.get)
-
-            # Or instead, use the known face with the smallest distance to the new face
-            # face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
-            # if not face_distances:
-            #     continue
-            # best_match_index = np.argmin(face_distances)
-            # if matches[best_match_index]:
-            #     name = self.known_face_names[best_match_index]
-            # face_names.append(name)
             face_user_ids.append(user_id)
 
         # Convert to numpy array to adjust coordinates with frame resizing quickly
@@ -179,4 +149,3 @@ class SimpleFaceRec:
 if __name__ == '__main__':
     s = SimpleFaceRec()
     s.load_encoding_images(images_path=config.faces_path)
-    pass

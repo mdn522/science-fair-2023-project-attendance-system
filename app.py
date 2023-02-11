@@ -6,20 +6,17 @@ from typing import List
 
 # from livereload import Server
 import cv2
-import os
 
 import face_recognition
 from flask import Flask, request, render_template
 from datetime import date
 from datetime import datetime
-# import numpy as np
 import pandas as pd
 from pathlib import Path
 import diskcache as dc
 
 import config
 import utils
-from config import base_path
 from simple_facerec import SimpleFaceRec, FaceDataItem
 
 # Defining Flask App
