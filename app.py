@@ -361,7 +361,7 @@ def attendance_history():
     # TODO zip it
     names, rolls, occupations, times, l = extract_attendance()
 
-    return render_template('attendance_history.html.html', names=names, rolls=rolls, occupations=occupations, times=times, l=l)  # totalreg=totalreg(), datetoday2=datetoday2
+    return render_template('attendance_history.html', names=names, rolls=rolls, occupations=occupations, times=times, l=l)  # totalreg=totalreg(), datetoday2=datetoday2
 
 
 # Our main function which runs the Flask App
