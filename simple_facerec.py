@@ -18,7 +18,7 @@ class FaceDataItem:
     user_id: int
     filesize: int
     filename: str
-    occupation: str = 'student'
+    occupation: str = 'Student'
     encoding: Optional[object] = None
 
 
@@ -27,7 +27,7 @@ class SimpleFaceRec:
         self.known_face_data = dc.Index(str(config.dc_path / 'known_face_data'))
 
         # Resize frame for a faster speed
-        self.frame_resizing = 0.5
+        self.frame_resizing = 1
 
         print('known_face_data_len', len(self.known_face_data))
 
@@ -79,7 +79,7 @@ class SimpleFaceRec:
             if _:
                 occupation = _[0]
             else:
-                occupation = 'student'
+                occupation = 'Student'
             # Get encoding
             # TODO rgb -> frame
             if force \
@@ -87,7 +87,7 @@ class SimpleFaceRec:
                     or known_face_data[user_id].encoding is None \
                     or known_face_data[user_id].filesize != img_size:
                 print('Encoding')
-                img_encoding = face_recognition.face_encodings(rgb_img)[0]
+                img_encoding = face_recognition.face_encodings(rgb_img, num_jitters=2)[0]
 
                 # Store file name and file encoding
                 self.known_face_data[user_id] = FaceDataItem(
@@ -124,7 +124,7 @@ class SimpleFaceRec:
         # rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
         face_locations = self.face_locations(small_frame)
         # face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(small_frame, face_locations)
+        face_encodings = face_recognition.face_encodings(small_frame, face_locations, num_jitters=2)
 
         # print(face_locations, face_encodings)
 

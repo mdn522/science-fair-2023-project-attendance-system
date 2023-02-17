@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block head %}Add New User{% endblock %}
+{% block title %}Add New User{% endblock title %}
 
 {% block content %}
 <div class="mx-auto container mt-4 p-2">
     <div class="mx-auto flex items-center justify-center">
         <div class="rounded-md bg-gradient-to-r from-blue-600 via-sky-500 to-violet-800 p-1">
-            <h1 class="text-2xl leading-10 font-medium text-center mt-[-8px] ">Captured Image</h1>
+            <h1 class="text-2xl leading-10 font-medium text-center mt-[-8px] text-white">Captured Image</h1>
             <div class="flex items-center justify-center bg-gray-800 back">
                 <img class="w-auto max-h-96 border-red-500" src="data:image/jpeg;base64,{{ frame | np_base64 | safe }}"
                      alt="Captured Image">
@@ -25,7 +25,7 @@
                             <input id="cb-{{ face.uuid }}" type="checkbox" name="faces.{{ face.uuid }}.enabled" checked class="user-cb w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                             <label for="cb-{{ face.uuid }}" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">Submit?</label>
                         </div>
-                        <div class="w-72 bg-slate-800 px-5 py-5">
+                        <div class="w-72 bg-gray-50 dark:bg-slate-800 px-5 py-5">
                             <div class="text-center">
                                 <img class="inline h-32 border border-cyan-400" src="data:image/jpeg;base64,{{ face.image | np_base64 | safe }}" alt="">
                             </div>
