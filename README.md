@@ -1,4 +1,4 @@
-# Attendance System using Face Detection Alrgorithm
+# Attendance System using Face Detection Algorithm
 
 ### Requirements:
 - Python 3.7
