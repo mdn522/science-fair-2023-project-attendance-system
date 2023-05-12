@@ -1,3 +1,5 @@
+import functools
+
 import cv2
 import imutils
 import requests
@@ -18,7 +20,9 @@ def get_cam_ip_frame():
 
 
 def get_frame(cap):
-    if not config.use_cam_ip:
+    if config.test_use_static_image:
+        frame = cv2.imread(config.test_static_image_name)
+    elif not config.use_cam_ip:
         ret, frame = cap.read()
     else:
         frame = get_cam_ip_frame()
@@ -54,3 +58,12 @@ def parse_to_dict_vals(dictin):
     for key, value in dictin.items():
         parse_to_dict_val(key, value, dictout)
     return dictout
+
+
+from PIL import Image, ImageDraw, ImageFont, ImageColor
+
+
+# Pillow
+@functools.lru_cache(maxsize=32)
+def pillow_get_font(filepath, size):
+    return ImageFont.truetype(filepath, size)

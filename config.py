@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from environs import Env
 
@@ -25,6 +26,14 @@ test_use_static_image = env.bool('TEST_USE_STATIC_IMAGE', default=False)
 test_static_image_name = env.str('TEST_STATIC_IMAGE_NAME', default='camera.jpg')
 
 
+
+fonts_dir = os.path.join(os.environ['WINDIR'], 'Fonts')
+pillow_config = {
+    'fonts': {
+        'consolas': os.path.join(fonts_dir, 'consolab.ttf'),
+        'arial': os.path.join(fonts_dir, 'Arial.ttf'),
+    }
+}
 
 if __name__ == '__main__':
     print(base_path)

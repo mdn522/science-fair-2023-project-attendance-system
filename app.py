@@ -1,19 +1,23 @@
 import base64
+import os
 import time
 import uuid
 from collections import OrderedDict
-from typing import List
-
+from typing import List, NamedTuple
+import pendulum
 # from livereload import Server
 import cv2
 
 import face_recognition
+import numpy as np
 from flask import Flask, request, render_template
 from datetime import date
 from datetime import datetime
 import pandas as pd
 from pathlib import Path
 import diskcache as dc
+from PIL import Image, ImageDraw, ImageFont, ImageColor
+from numpy.random._common import namedtuple
 
 import config
 import utils
@@ -161,52 +165,52 @@ def add():
     cv2_title = "Add new User"
     first_frame = True
 
-    if config.test_use_static_image:
-        captured_frame = cv2.imread(config.test_static_image_name)  # TODO test. delete it
-    else:
-        # cap = cv2.VideoCapture(config.camera_index)
-        while True:
-            frame = utils.get_frame(cap)
+    # if config.test_use_static_image:
+    #     captured_frame = cv2.imread(config.test_static_image_name)  # TODO test. delete it
+    # else:
+    # cap = cv2.VideoCapture(config.camera_index)
+    while True:
+        frame = utils.get_frame(cap)
 
-            cv2.putText(
-                frame, 'Press {} to start timer'.format(timer_key), (30, 50),
-                cv2.FONT_HERSHEY_DUPLEX, 1,
-                (100, 255, 100), 2, cv2.LINE_AA
-            )
+        cv2.putText(
+            frame, 'Press {} to start timer'.format(timer_key), (30, 50),
+            cv2.FONT_HERSHEY_DUPLEX, 1,
+            (100, 255, 100), 2, cv2.LINE_AA
+        )
 
-            cv2.imshow(cv2_title, frame)
-            if first_frame:
-                first_frame = False
-                # cv2.setWindowProperty(cv2_title, cv2.WND_PROP_TOPMOST, 1)
-                win_set_fore(cv2_title)
-            k = cv2.waitKey(1)
+        cv2.imshow(cv2_title, frame)
+        if first_frame:
+            first_frame = False
+            # cv2.setWindowProperty(cv2_title, cv2.WND_PROP_TOPMOST, 1)
+            win_set_fore(cv2_title)
+        k = cv2.waitKey(1)
 
-            if k == ord(timer_key):
-                prev = time.time()
+        if k == ord(timer_key):
+            prev = time.time()
 
-                while TIMER >= 0:
-                    frame = utils.get_frame(cap)
-                    cv2.putText(
-                        frame, str(TIMER + 1), (75, 200),
-                        cv2.FONT_HERSHEY_DUPLEX, 7, (0, 0, 255),
-                        4, cv2.LINE_AA
-                    )
-                    cv2.imshow(cv2_title, frame)
-                    cv2.waitKey(1)
+            while TIMER >= 0:
+                frame = utils.get_frame(cap)
+                cv2.putText(
+                    frame, str(TIMER + 1), (75, 200),
+                    cv2.FONT_HERSHEY_DUPLEX, 7, (0, 0, 255),
+                    4, cv2.LINE_AA
+                )
+                cv2.imshow(cv2_title, frame)
+                cv2.waitKey(1)
 
-                    cur = time.time()
+                cur = time.time()
 
-                    # Update and keep track of Countdown
-                    # if time elapsed is one second
-                    # then decrease the counter
-                    if cur - prev >= 1:
-                        prev = cur
-                        TIMER = TIMER - 1
-                else:
-                    captured_frame = utils.get_frame(cap)
-                    break
-            elif k == 27:
+                # Update and keep track of Countdown
+                # if time elapsed is one second
+                # then decrease the counter
+                if cur - prev >= 1:
+                    prev = cur
+                    TIMER = TIMER - 1
+            else:
+                captured_frame = utils.get_frame(cap)
                 break
+        elif k == 27:
+            break
 
         # close the camera
         # cap.release()
@@ -267,7 +271,7 @@ def add():
     return render_template('add.html', **ctx)
 
 
-@app.route('/take-attendance', methods=['GET', 'POST'])
+@app.route('/take-attendance', methods=['GET'])
 def take_attendance():
     if len(sfr.valid_known_face_data) == 0:
         return render_template(
@@ -275,47 +279,86 @@ def take_attendance():
             msg='There are no faces in the system. Please add a face/user before attending.'
         )
 
+    video_feed_source_name = request.args.get('name', 'Main Gate')
     cancelled = False
     captured_frame = None
 
     dt = None
 
-    if config.test_use_static_image:
-        captured_frame = cv2.imread('camera.jpg')
-    else:
-        # cap = cv2.VideoCapture(config.camera_index)
-        cv2_title = "Take Attendance"
-        first_frame = True
-        while True:
-            frame = utils.get_frame(cap)
-            original_frame = frame.copy()
+    # if config.test_use_static_image:
+    #     captured_frame = cv2.imread('camera.jpg')
+    # else:
+    # cap = cv2.VideoCapture(config.camera_index)
+    cv2_title = "Take Attendance"
+    first_frame = True
+    while True:
+        frame = utils.get_frame(cap)
+        original_frame = frame.copy()
 
-            face_locations = sfr.face_locations(frame)
+        face_locations = sfr.face_locations(frame)
 
-            for face_loc in face_locations:
-                y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
+        for face_loc in face_locations:
+            y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
 
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 20), 2)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 20), 2)
 
-            cv2.putText(frame, f'Press q to take picture', (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 20), 2, cv2.LINE_AA)
+        # cv2.putText(frame, f'Press q to take picture', (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 20), 2, cv2.LINE_AA)
 
-            cv2.imshow(cv2_title, frame)
-            if first_frame:
-                first_frame = False
-                # cv2.setWindowProperty(cv2_title, cv2.WND_PROP_TOPMOST, 1)
-                win_set_fore(cv2_title)
-            k = cv2.waitKey(1)
+        # Draw
+        def draw(cv2_img):
+            cv2_img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(cv2_img)
+            draw = ImageDraw.Draw(img)
+            w, h = img.size
 
-            if k == ord('q'):
-                captured_frame = original_frame
-                dt = datetime.now()
-                break
-            elif k == 27:
-                cancelled = True
-                break
+            # Draw Camera Name
+            if video_feed_source_name:
+                font = utils.pillow_get_font(config.pillow_config['fonts']['consolas'], 60)
+                text_w, text_h = draw.textsize(video_feed_source_name, font)
 
-        # cap.release()
-        cv2.destroyAllWindows()
+                draw.text((10, 10), video_feed_source_name, (255, 107, 107), font=font)
+            # END
+
+            # Draw press q to take picture
+            text = f'Press q to take picture'
+            font = utils.pillow_get_font(config.pillow_config['fonts']['arial'], 45)
+            text_w, text_h = draw.textsize(text, font)
+
+            draw.text((w - text_w - 10, 10), text, (255, 159, 67), font=font)
+            # END
+
+            # Draw Time
+            title = pendulum.now().format("hh:mm:ss A")
+
+            font = utils.pillow_get_font(config.pillow_config['fonts']['consolas'], 30)
+            text_w, text_h = draw.textsize(title, font)
+
+            draw.text(((w - text_w) // 2, h - text_h - 10), title, (16, 172, 132), font=font)
+            # END Draw Time
+
+            cv2_img = np.array(img)
+            cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_RGB2BGR)
+            return cv2_img
+
+        frame = draw(frame)
+
+        cv2.imshow(cv2_title, frame)
+        if first_frame:
+            first_frame = False
+            # cv2.setWindowProperty(cv2_title, cv2.WND_PROP_TOPMOST, 1)
+            win_set_fore(cv2_title)
+        k = cv2.waitKey(1)
+
+        if k == ord('q'):
+            captured_frame = original_frame
+            dt = datetime.now()
+            break
+        elif k == 27:
+            cancelled = True
+            break
+
+    # cap.release()
+    cv2.destroyAllWindows()
 
     if cancelled:
         return render_template('index.html', msg='Cancelled')
@@ -373,6 +416,7 @@ def take_attendance():
         'frame': frame_m,
         'original_frame': frame,
         'faces': faces,
+        'camera_name': video_feed_source_name,
         # 'attended_persons': attended_persons,
     }
     return render_template('attend.html', **ctx)
@@ -384,6 +428,25 @@ def attendance_history():
     names, rolls, occupations, times, l = extract_attendance()
 
     return render_template('attendance_history.html', names=names, rolls=rolls, occupations=occupations, times=times, l=l)  # totalreg=totalreg(), datetoday2=datetoday2
+
+
+@app.route('/cameras', methods=['GET'])
+def camera_list():
+    Camera = namedtuple('Camera', 'name img category')
+    cameras = [
+        Camera(name='Main Gate', img=None, category='misc'),
+        Camera(name='Room Class-1', img="class-jr-1.jpg", category='class'),
+        Camera(name='Room Class-4', img="class-jr-2.jpg", category='class'),
+        Camera(name='Class Room SSC', img="class-sr-1.jpg", category='class'),
+        Camera(name='Class Room HSC', img="class-sr-2.jpg", category='class'),
+        Camera(name='Office Room', img="office-1.jpg", category='misc'),
+        Camera(name='Floor 1', img=None, category='floor'),
+        Camera(name='Floor 1 - Stairs', img=None, category='floor'),
+        Camera(name='Floor 2', img=None, category='floor'),
+        Camera(name='Floor 3', img=None, category='floor'),
+    ]
+    categories = ['misc', 'class', 'floor']
+    return render_template('cameras.html', cameras=cameras, categories=categories)
 
 
 # Our main function which runs the Flask App

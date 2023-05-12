@@ -12,3 +12,5 @@ environs
 git+https://github.com/schmoelder/python-diskcache.git@support_dill
 git+https://github.com/remigermain/nested-multipart-parser
 pywinauto
+Pillow
+pendulum

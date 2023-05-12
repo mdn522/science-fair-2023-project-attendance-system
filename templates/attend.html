@@ -18,7 +18,7 @@
 
         <div class="mx-auto flex justify-center items-center relative mt-6 flex-col">
             {% if faces | length > 0 %}
-                <h2 class="text-2xl leading-1 text-center mb-2">Attended Users</h2>
+                <h2 class="text-2xl leading-1 text-center mb-2">Detected Users</h2>
 
                 <div class="flex justify-center">
                     {% for face in faces %}
@@ -42,6 +42,9 @@
                                 <span class="">Name: <span class="font-semibold">{{ face.person.name }}</span> </span><br>
                                 <span class="">User ID: <span class="font-semibold">{{ face.person.user_id }}</span> </span><br>
                                 <span class="">Type: <span class="font-semibold">{{ face.person.occupation }}</span> </span><br>
+                                {% if camera_name %}
+                                    <span class="">Place: <span class="font-semibold">{{ camera_name }}</span> </span><br>
+                                {% endif %}
                             {% else %}
                                 <span class="text-red-500 font-semibold">Unknown Person</span>
                             {% endif %}
