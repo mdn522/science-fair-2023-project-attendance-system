@@ -15,11 +15,14 @@ attendance_history_path.mkdir(exist_ok=True)
 env = Env()
 env.read_env()  # read .env file, if it exists  str(base_path)
 
+face_encodings_num_jitters = 1
+
 camera_index = env.int('CV2_CAMERA_INDEX', default=0)
 add_capture_timer = int(3)  # seconds
 
 use_cam_ip: bool = env.bool('USE_CAM_IP', default=False)
 cam_ip_url: str = env.str('CAM_IP_URL', default='')
+realtime: bool = env.bool('REALTIME', default=False)
 
 # TEST Modes
 test_use_static_image = env.bool('TEST_USE_STATIC_IMAGE', default=False)

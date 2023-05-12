@@ -27,7 +27,7 @@ class SimpleFaceRec:
         self.known_face_data = dc.Index(str(config.dc_path / 'known_face_data'))
 
         # Resize frame for a faster speed
-        self.frame_resizing = 1
+        self.frame_resizing = 0.5
 
         print('known_face_data_len', len(self.known_face_data))
 
@@ -117,14 +117,21 @@ class SimpleFaceRec:
 
         return face_locations
 
-    def detect_known_faces(self, frame):
-        small_frame = cv2.resize(frame, (0, 0), fx=self.frame_resizing, fy=self.frame_resizing)
-        # Find all the faces and face encodings in the current frame of video
-        # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
-        # rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-        face_locations = self.face_locations(small_frame)
+    def resize_frame(self, frame):
+        return cv2.resize(frame, (0, 0), fx=self.frame_resizing, fy=self.frame_resizing)
+
+    def detect_known_faces(self, frame, small_frame=None, face_locations=None):
+        if small_frame is None:
+            small_frame = self.resize_frame(frame)
+
+        if face_locations is None:
+            # Find all the faces and face encodings in the current frame of video
+            # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
+            # rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
+            face_locations = self.face_locations(small_frame)
+
         # face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(small_frame, face_locations, num_jitters=2)
+        face_encodings = face_recognition.face_encodings(small_frame, face_locations, num_jitters=config.face_encodings_num_jitters)
 
         # print(face_locations, face_encodings)
 

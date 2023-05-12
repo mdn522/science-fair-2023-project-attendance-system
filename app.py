@@ -169,19 +169,32 @@ def add():
     #     captured_frame = cv2.imread(config.test_static_image_name)  # TODO test. delete it
     # else:
     # cap = cv2.VideoCapture(config.camera_index)
+
+    def draw(frame):
+        small_frame = sfr.resize_frame(frame)
+        face_locations = sfr.face_locations(small_frame)
+        face_locations = np.array(face_locations)
+        face_locations = face_locations / sfr.frame_resizing
+        face_locations = face_locations.astype(int)
+        for face_loc in face_locations:
+            y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 20), 2)
+
+        return frame
+
     while True:
         frame = utils.get_frame(cap)
+
+        frame = draw(frame)
 
         cv2.putText(
             frame, 'Press {} to start timer'.format(timer_key), (30, 50),
             cv2.FONT_HERSHEY_DUPLEX, 1,
             (100, 255, 100), 2, cv2.LINE_AA
         )
-
         cv2.imshow(cv2_title, frame)
         if first_frame:
             first_frame = False
-            # cv2.setWindowProperty(cv2_title, cv2.WND_PROP_TOPMOST, 1)
             win_set_fore(cv2_title)
         k = cv2.waitKey(1)
 
@@ -190,6 +203,9 @@ def add():
 
             while TIMER >= 0:
                 frame = utils.get_frame(cap)
+
+                frame = draw(frame)
+
                 cv2.putText(
                     frame, str(TIMER + 1), (75, 200),
                     cv2.FONT_HERSHEY_DUPLEX, 7, (0, 0, 255),
@@ -212,10 +228,10 @@ def add():
         elif k == 27:
             break
 
-        # close the camera
-        # cap.release()
-        # close all the opened windows
-        cv2.destroyAllWindows()
+    # close the camera
+    # cap.release()
+    # close all the opened windows
+    cv2.destroyAllWindows()
 
     #
     if captured_frame is None:
@@ -279,7 +295,9 @@ def take_attendance():
             msg='There are no faces in the system. Please add a face/user before attending.'
         )
 
-    video_feed_source_name = request.args.get('name', 'Main Gate')
+    known_face_data = OrderedDict(sfr.known_face_data.items())
+
+    video_feed_source_name = request.args.get('name', '')
     cancelled = False
     captured_frame = None
 
@@ -295,12 +313,32 @@ def take_attendance():
         frame = utils.get_frame(cap)
         original_frame = frame.copy()
 
-        face_locations = sfr.face_locations(frame)
+        small_frame = sfr.resize_frame(frame)
+        face_locations = sfr.face_locations(small_frame)
+        face_user_ids = []
 
-        for face_loc in face_locations:
+        if config.realtime:
+            face_locations, face_user_ids = sfr.detect_known_faces(frame, small_frame=small_frame, face_locations=face_locations)
+        else:
+            face_locations = np.array(face_locations)
+            face_locations = face_locations / sfr.frame_resizing
+            face_locations = face_locations.astype(int)
+
+        for face_loc in (face_locations if not config.realtime else zip(face_locations, face_user_ids)):
+            if config.realtime:
+                face_loc, face_user_id = face_loc
+
             y1, x2, y2, x1 = face_loc[0], face_loc[1], face_loc[2], face_loc[3]
 
             cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 20), 2)
+
+            if config.realtime:
+                person: FaceDataItem = known_face_data.get(face_user_id)
+                if person:
+                    cv2.putText(frame, "Name: {}".format(person.name), (x1, y1 - 40), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 200, 0), 2)
+                    cv2.putText(frame, "ID: {} | {}".format(person.user_id, person.occupation), (x1, y1 - 10), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 230, 0), 2)
+                else:
+                    cv2.putText(frame, "Unknown Person", (x1, y1 - 10), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 200), 2)
 
         # cv2.putText(frame, f'Press q to take picture', (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 20), 2, cv2.LINE_AA)
 
@@ -345,7 +383,6 @@ def take_attendance():
         cv2.imshow(cv2_title, frame)
         if first_frame:
             first_frame = False
-            # cv2.setWindowProperty(cv2_title, cv2.WND_PROP_TOPMOST, 1)
             win_set_fore(cv2_title)
         k = cv2.waitKey(1)
 
@@ -369,7 +406,6 @@ def take_attendance():
     frame = captured_frame
     frame_m = frame.copy()
 
-    known_face_data = OrderedDict(sfr.known_face_data.items())
     face_locations, face_user_ids = sfr.detect_known_faces(frame)
     faces = []
 
