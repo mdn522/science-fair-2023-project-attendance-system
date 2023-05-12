@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="mx-auto container mt-12">
+            <div class="flex justify-center flex-col">
+                <h1 class="text-center text-4xl mb-2">Cameras</h1>
+
+                {% set cycling_list = cycler(
+                    'bg-red-400',
+                    'bg-amber-400',
+                    'bg-lime-400',
+                    'bg-teal-400',
+                    'bg-emerald-400',
+                    'bg-cyan-400',
+                    'bg-sky-400',
+                    'bg-blue-400',
+                    'bg-purple-400'
+                ) %}
+                {% for category in categories %}
+                    <h2 class="text-left text-3xl mb-2 font-bold">{{ category | title }}</h2>
+                    <div class="flex flex-wrap">
+                    {% for camera in cameras %}
+                        {% if camera.category == category %}
+                            <a class="w-64 h-36 flex flex-col mr-1 mb-2 border rounded" href="/take-attendance?name={{ camera.name }}">
+                                <div class="px-2 bg-gray-100 font-bold text-xl">
+                                    {{ camera.name }}
+                                </div>
+{#                                <div class="{{ cycling_list.next() }}  grow">#}
+{#                                    {% if camera.img %}#}
+{#                                        <img src="{{ static('img/camera_thumb/' + camera.img) }}" alt="{{ camera.name }}">#}
+{#                                        <img src="{{ url_for('static', filename = 'img/camera_thumb/' + camera.img) }}" alt="{{ camera.name }}">#}
+{#                                        <img src="{{ url_for('static', filename = 'img/camera_thumb/' + camera.img) }}" alt="{{ camera.name }}">#}
+{#                                    {% endif %}#}
+{#                                </div>#}
+                                <div class="{{ cycling_list.next() }} {% if camera.img %}bg-cover bg-bottom bg-contain bg-no-repeat bg-[url('{{ url_for('static', filename = 'img/camera_thumb/' + camera.img) }}')]{% endif %} grow">
+
+{#                                        <img src="{{ static('img/camera_thumb/' + camera.img) }}" alt="{{ camera.name }}">#}
+{#                                        <img src="{{ url_for('static', filename = 'img/camera_thumb/' + camera.img) }}" alt="{{ camera.name }}">#}
+
+
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    </div>
+                    <hr class="mb-4">
+                {% endfor %}
+            </div>
+    </div>
+{% endblock %}
